@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "829619066268",
+    "project_id": "quickcab-e220a",
+    "storage_bucket": "quickcab-e220a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:829619066268:android:1ffd416f63fabf40972459",
+        "android_client_info": {
+          "package_name": "com.driver"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDl0iL_jEtUnoTojoxcA41CeiftClzmkkI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
