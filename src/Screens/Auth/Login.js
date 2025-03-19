@@ -14,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { onForegroundEvent, onNotification, onOpenNotification } from '../../Services/Notification/NotifeeService';
 import notifee, { EventType } from '@notifee/react-native';
 import { fcmService } from '../../Services/Notification/FCMservice';
+import Toast from "react-native-simple-toast";
 
 const { height, width } = Dimensions.get('screen')
 // create a component
@@ -71,6 +72,14 @@ const Login = () => {
 
 
     const getUserLogin = async () => {
+        if (!Phone.trim()) {
+            Toast.show('Enter Your Phone Number');
+            return;
+        }
+        if (!password.trim()) {
+            Toast.show('Enter Your Password');
+            return;
+        }
         const data = {
             "phone": Phone,   
             "password": password,
@@ -89,9 +98,10 @@ const Login = () => {
                 AuthService.setAccount(res.data);
                 dispatch(setUser(res.data));
                 console.log('Token saved successfully:', res.token);
+                Toast.show(res?.message);
             } else {
                 // Handle login failure
-                console.log('Login failed:', res?.message || 'Unknown error');
+                Toast.show(res?.message);
                 // Toast.show(res?.message || 'Failed to send email. Please try again.');
             }
         } catch (error) {
@@ -156,7 +166,7 @@ const Login = () => {
                 </View>
 
                 <Text
-                    // onPress={() => NavigationService.navigate('FPLogin')}
+                    onPress={() => NavigationService.navigate('FPLogin')}
                     style={styles.forget_password}>Forget Password ?</Text>
 
                 <TouchableOpacity

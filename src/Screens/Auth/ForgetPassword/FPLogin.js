@@ -42,7 +42,9 @@ const FPLogin = () => {
 
             if (res?.status === true) {
                 NavigationService.navigate('FPOtp', { dataOtp: res?.data })
+                Toast.show( res?.message );
             } else {
+                Toast.show( res?.message );
                 console.error('Error:', res?.message || 'OTP validation failed.')
             }
         } catch (error) {

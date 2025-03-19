@@ -9,6 +9,7 @@ import { useTheme } from '../../../ThemeContext';
 import NavigationService from '../../Services/Navigation';
 import { useRoute } from '@react-navigation/native';
 import AuthService from '../../Services/Auth';
+import Toast from "react-native-simple-toast";
 
 const { height, width } = Dimensions.get('screen')
 // create a component
@@ -71,11 +72,12 @@ const LoginOtp = () => {
 
             if (res?.status === true) {
                 NavigationService.navigate('SignUp', { dataOtp: res?.data })
+                Toast.show(res?.message);
             } else {
-                console.error('Error:', res?.message || 'OTP validation failed.')
+                Toast.show(res?.message);
             }
         } catch (error) {
-            console.error('Error777', error)
+            console.log('Error777', error)
         } finally {
             setButtonLoader(false)
         }

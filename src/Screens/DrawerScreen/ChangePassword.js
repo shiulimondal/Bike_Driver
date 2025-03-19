@@ -8,6 +8,7 @@ import { FONTS } from '../../Constants/Fonts';
 import NavigationService from '../../Services/Navigation';
 import Icon from '../../Ui/Icon';
 import HomeService from '../../Services/HomeServises';
+import Toast from "react-native-simple-toast";
 
 const { height, width } = Dimensions.get('screen')
 // create a component
@@ -32,39 +33,42 @@ const ChangePassword = () => {
     const getUserData = async () => {
         try {
             const res = await HomeService.setUserProfile()
-            console.log('ressssssssssssssssssssssssssuser-----------------------------------', res);
+            // console.log('ressssssssssssssssssssssssssuser-----------------------------------', res);
             if (res?.status === true) {
                 setMyProfile(res?.data)
             }
         } catch (error) {
-            console.log('Error in profileeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee:', error);
+            // console.log('Error in profileeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee:', error);
             //   Toast.show('An unexpected error occurred. Please try again later.');
         }
     };
 
     const getChangePassword = async () => {
+        // Define the data object first
         const data = {
             old_password: password,
             password: passwordNew,
             password_confirmation: passwordCnf
         };
     
-        // Manual validation
+        // // Manual validation
         if (!data.old_password) {
-            return alert('Old password is required');
+            return Toast.show('Old password is required');
         }
         if (!data.password) {
-            return alert('New password is required');
+            return Toast.show('New password is required');
         }
         if (data.password.length < 6) {
-            return alert('Password must be at least 6 characters long');
+            return Toast.show('Password must be at least 6 characters long');
         }
         if (!data.password_confirmation) {
-            return alert('Password confirmation is required');
+            return Toast.show('Password confirmation is required');
         }
         if (data.password !== data.password_confirmation) {
-            return alert('Passwords must match');
+            return Toast.show('Passwords must match');
         }
+    
+        console.log('psssssssssssssssssssssssssssssss------------------', data);
     
         try {
             setButtonLoader(true);
@@ -72,13 +76,19 @@ const ChangePassword = () => {
     
             if (res?.status === true) {
                 NavigationService.navigate('Home');
+                Toast.show(res.message)
+                console.log('rrrrs------------------', res.message);
+            }else{
+                console.log('rrrrrrrrrrrrrrrrrrrrrrrrrs------------------', res.message);
+                Toast.show(res.message)
             }
         } catch (error) {
-            console.log('Error777', error);
+            console.log('Error777-------------------', error);
         } finally {
             setButtonLoader(false);
         }
     };
+    
     
 
 
@@ -144,6 +154,8 @@ const ChangePassword = () => {
                             color: colors.primaryFontColor
                         }}
                         keyboardType='numbers-and-punctuation'
+                        value={passwordNew}
+                        onChangeText={(val) => setPasswordNew(val)}
                         secureTextEntry={!showPasswordNew}
                     />
                     <TouchableOpacity onPress={() => setShowPasswordNew(!showPasswordNew)}>

@@ -1,7 +1,7 @@
 //import liraries
 import React, { Component, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, Dimensions, ScrollView, PermissionsAndroid, Pressable } from 'react-native';
-import Modal from 'react-native-modal';
+import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, Dimensions, ScrollView, PermissionsAndroid, Pressable, ActivityIndicator } from 'react-native';
+import ImageModal from 'react-native-modal';
 import { useTheme } from '../../../ThemeContext';
 import { moderateScale } from '../../Constants/PixelRatio';
 import { FONTS } from '../../Constants/Fonts';
@@ -12,43 +12,63 @@ import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import moment from 'moment';
 import NavigationService from '../../Services/Navigation';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import GenderPicker from '../../Ui/GenderPicker';
+import Toast from "react-native-simple-toast";
+import { useRoute } from '@react-navigation/native';
 
 // create a component
 const { height, width } = Dimensions.get('screen')
-const Profile = () => {
-    const { colors } = useTheme();
+const Profile = ({}) => {
+    const { colors } = useTheme(); 
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false);
     const [isModalVisible, setModalVisible] = useState(false);
     const [MyProfile, setMyProfile] = useState([])
+    const [rating, setRating] = useState('')
+    const [trips, setTrips] = useState('')
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
-    const [gender, setGender] = useState('');
+    // const [gender, setGender] = useState('');
+
+    const [genderId, setGenderId] = useState(null);
+    const [genderName, setGenderName] = useState('');
+
+    const [genderList, setGenderList] = useState([
+        { id: 1, label: "Male" },
+        { id: 2, label: "Female" }
+    ]);
+
+    // Handler function to update both id and name
+    const handleGenderChange = (selectedId) => {
+        const selectedGender = genderList.find(item => item.id === selectedId);
+        if (selectedGender) {
+            setGenderId(selectedGender.id);
+            setGenderName(selectedGender.label);
+        }
+    };
+
     const [dob, setDob] = useState('');
     const [selectedDocuments, setSelectedDocuments] = useState([]);
+    const [userProfile, setUserProfile] = useState('');
     const [isModalimg, setModalImg] = useState(false);
     const [buttonLoader, setButtonLoader] = useState(false);
+    const [Loader, setLoader] = useState(false);
 
-    const [selectedDate, setSelectedDate] = useState('');
+
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
     const showDatePicker = () => setDatePickerVisibility(true);
     const hideDatePicker = () => setDatePickerVisibility(false);
 
     const DatehandleConfirm = (date) => {
-        const formattedDate = moment(date).format('YYYY-MM-DD'); 
+        const formattedDate = moment(date).format('YYYY-MM-DD');
         console.log('Selected Date:', formattedDate);
-        setDob(formattedDate); 
+        setDob(formattedDate);
         hideDatePicker();
     };
 
-
-
-    const toggleModal = () => {
-        setModalVisible(!isModalVisible);
-    };
 
     useEffect(() => {
         getUserData()
@@ -56,27 +76,26 @@ const Profile = () => {
 
     const getUserData = async () => {
         try {
-            // setButtonLoader(true);
+            setLoader(true);
             const res = await HomeService.setUserProfile()
             console.log('ressssssssssssssssssssssssssuser======================', res);
-
             if (res?.status === true) {
                 setMyProfile(res?.data)
                 setName(res?.data?.name)
                 setEmail(res?.data?.email)
                 setPhone(res?.data?.phone)
-                setSelectedDocuments(res?.data?.image_path)
-                setGender(res?.data?.gender)
+                setUserProfile(res?.data?.image_path)
+                setGenderName(res?.data?.gender)
                 setDob(res?.data?.dob)
-
-            } else {
-                // Toast.show(res?.message || 'Failed to send email. Please try again.');
+                setRating(res?.driver_rating)
+                setTrips(res?.trip_count)
             }
         } catch (error) {
-            console.error('Error in getEmailLogin:', error);
-            //   Toast.show('An unexpected error occurred. Please try again later.');
+            console.log('Error in getEmailLogin:', error);
+            Toast.show('An unexpected error occurred. Please try again later.');
+            setLoader(false);
         } finally {
-            setButtonLoader(false);
+            setLoader(false);
         }
     };
 
@@ -134,12 +153,13 @@ const Profile = () => {
         }
     };
 
+
     const getUserReg = async () => {
         const formData = new FormData()
         formData.append('name', name)
         formData.append('email', email)
         formData.append('phone', phone)
-        formData.append('gender', gender)
+        formData.append('gender', genderName)
         formData.append('dob', dob)
         selectedDocuments.forEach((image, index) => {
             formData.append('image', {
@@ -154,12 +174,14 @@ const Profile = () => {
         try {
             setButtonLoader(true);
             const res = await HomeService.setUpdateProfile(formData)
-            console.log('Registrationres========================', res)
+            console.log('Registrationres============-----------------------========-----------------------====', res)
             if (res?.status === true) {
                 // setModalVisible(true)
                 NavigationService.navigate('Home')
+                Toast.show(res?.message);
             } else {
                 console.error('Registration failed:', res?.message || 'Unknown error');
+                Toast.show(res?.message);
             }
         } catch (error) {
             console.error('Error in getUserReg:', error);
@@ -176,15 +198,23 @@ const Profile = () => {
             <ScrollView showsVerticalScrollIndicator={false}>
                 <Pressable onPress={() => setModalImg(true)} style={{ alignItems: 'center' }}>
                     <View style={{ ...styles.user_img_view, backgroundColor: colors.secondaryFontColor }}>
-                        <Image
-                            source={
-                                selectedDocuments?.length > 0
-                                    ? { uri: selectedDocuments[0].uri }
+                        {
+                            userProfile || selectedDocuments?.length ? (
+                                <Image
+                                    source={{
+                                        uri: selectedDocuments?.length ? selectedDocuments[0]?.uri : userProfile,
+                                    }}
+                                    style={styles.user_img}
+                                />
+                            ) : (
+                                <Image
+                                    source={require('../../assets/images/noLogo.png')}
+                                    style={styles.user_img}
+                                />
+                            )
+                        }
 
-                                    : require('../../assets/images/noLogo.png')
-                            }
-                            style={{ ...styles.user_img }}
-                        />
+
 
                     </View>
                     <Pressable onPress={() => setModalImg(true)} style={{ ...styles.camera_circle, backgroundColor: colors.primaryThemeColor }}>
@@ -199,7 +229,7 @@ const Profile = () => {
                 <Text style={{ ...styles.username_txt, color: colors.tintText }}>{MyProfile?.name}</Text>
                 <View style={styles.ratingview}>
                     <Icon name={'star'} type={'Entypo'} color={'#EDAE10'} size={17} />
-                    <Text style={{ ...styles.rating_txt, color: colors.primaryFontColor }}>5.00(10 Trips)</Text>
+                    <Text style={{ ...styles.rating_txt, color: colors.primaryFontColor }}>{rating == null ? "0" : rating}({trips} Trips)</Text>
                 </View>
 
                 <TextInput
@@ -247,19 +277,51 @@ const Profile = () => {
                     onChangeText={(val) => setEmail(val)}
                 />
 
-                <TextInput
-                    placeholder='Gender'
-                    placeholderTextColor={colors.borderColor}
-                    style={{
-                        ...styles.input_sty,
-                        borderColor: colors.borderColor,
-                        color: colors.primaryFontColor,
-                        backgroundColor: colors.secondaryThemeColor
-                    }}
-                    keyboardType='numbers-and-punctuation'
-                    value={gender}
-                    onChangeText={(val) => setGender(val)}
-                />
+                {
+                    genderName == null || '' ?
+                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                            <GenderPicker
+                                labelKey="label"
+                                valueKey="id"
+                                placeholder="Select Gender"
+                                options={genderList}
+                                selectedValue={genderId}
+                                onValueChange={handleGenderChange}
+                                textStyle={{
+                                    fontSize: 15,
+                                    color: '#000'
+                                }}
+                            />
+                        </View>
+                        :
+                        <TextInput
+                            placeholderTextColor={colors.borderColor}
+                            style={{
+                                ...styles.input_sty,
+                                borderColor: colors.borderColor,
+                                color: colors.primaryFontColor,
+                                backgroundColor: colors.secondaryThemeColor
+                            }}
+                            value={genderName}
+                            editable={false}
+                        />
+                }
+
+                {/* <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <GenderPicker
+                        labelKey="label"
+                        valueKey="id"
+                        placeholder="Select Gender"
+                        options={genderList}
+                        selectedValue={genderId}
+                        onValueChange={handleGenderChange}
+                        textStyle={{
+                            fontSize: 15,
+                            color: '#000'
+                        }}
+                    />
+                </View> */}
+
 
                 <View style={{
                     ...styles.input_sty,
@@ -271,7 +333,7 @@ const Profile = () => {
                     backgroundColor: colors.secondaryThemeColor
                 }}>
 
-                    <Text style={{ ...styles.time_to_txt, color: colors.secondaryText }}>{!dob == '' ? moment(dob).format('L') : 'DOB'}</Text>
+                    <Text style={{ ...styles.time_to_txt, color: '#000' }}>{!dob == '' ? moment(dob).format('L') : 'DOB'}</Text>
                     <TouchableOpacity onPress={showDatePicker}>
                         <Icon name={'calendar'} type={'Feather'} color={'#001A72'} size={20} />
                     </TouchableOpacity>
@@ -285,76 +347,21 @@ const Profile = () => {
                 </View>
 
 
-
-
-
-
-                {/* <View style={{
-                    ...styles.passwoard_view,
-                    borderColor: colors.borderColor,
-                    color: colors.primaryFontColor,
-                    backgroundColor: colors.secondaryThemeColor
-                }}>
-                    <TextInput
-                        placeholder='Password'
-                        placeholderTextColor={colors.borderColor}
-                        style={{
-                            ...styles.Password_input_sty,
-                            color: colors.primaryFontColor
-                        }}
-                        keyboardType='numbers-and-punctuation'
-                        secureTextEntry={!showPassword}
-                    />
-                    <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                        <Icon
-                            name={showPassword ? 'eye' : 'eye-off'}
-                            type="Feather"
-                            color={colors.secondaryFontColor}
-                            size={20}
-                        />
-                    </TouchableOpacity>
-                </View> */}
-
-                {/* <View style={styles.button_view}>
-                    <TouchableOpacity
-                        style={{
-                            ...styles.button_sty,
-                            borderWidth: 1,
-                            borderColor: colors.buttonColor,
-                            backgroundColor: colors.inputBox
-                        }}>
-                        <Text style={{ ...styles.signin_txt, color: colors.tintText }}>Cancle</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                    onPress={()=>getUserReg()}
-                        style={{ ...styles.button_sty, backgroundColor: colors.buttonColor }}>
-                        <Text style={{ ...styles.signin_txt, color: colors.secondaryThemeColor }}>Save</Text>
-                    </TouchableOpacity>
-                </View> */}
-
                 <TouchableOpacity
                     onPress={() => getUserReg()}
                     style={{ ...styles.button_sty, backgroundColor: colors.buttonColor }}>
-                    <Text style={{ ...styles.signin_txt, color: colors.secondaryThemeColor }}>Save</Text>
+                    {buttonLoader ? (
+                        <ActivityIndicator size="small" color={'#fff'} />
+                    ) : (
+                        <Text style={{ ...styles.signin_txt, color: colors.secondaryThemeColor }}>Save</Text>
+                    )}
                 </TouchableOpacity>
 
             </ScrollView>
-            <Modal
-                isVisible={isModalVisible}
-                // backdropOpacity={1}
-                style={{
-                    margin: 0,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}
-            >
-                <View style={styles.modalView}>
-
-                </View>
-            </Modal>
+          
 
 
-            <Modal isVisible={isModalimg}
+            <ImageModal isVisible={isModalimg}
                 onBackButtonPress={() => setModalImg(false)}
                 onBackdropPress={() => setModalImg(false)}
                 transparent={true}>
@@ -402,7 +409,7 @@ const Profile = () => {
                         <Text style={styles.modalCancelText}>Cancel</Text>
                     </TouchableOpacity>
                 </View>
-            </Modal>
+            </ImageModal>
 
         </View>
     );

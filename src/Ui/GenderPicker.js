@@ -5,7 +5,7 @@ import { FONTS } from '../../Constants/Fonts';
 import Icon from './Icon';
 
 const { height, width } = Dimensions.get('screen');
-const CustomPicker = ({ label, options, selectedValue, onValueChange, labelKey = "option_name", valueKey = "id", placeholder = "Select" }) => {
+const GenderPicker = ({ label, options, selectedValue, onValueChange, labelKey = "option_name", valueKey = "id", placeholder = "Select" }) => {
     const [modalVisible, setModalVisible] = useState(false);
 
     const handleOptionPress = (value) => {
@@ -58,7 +58,7 @@ const CustomPicker = ({ label, options, selectedValue, onValueChange, labelKey =
 const styles = StyleSheet.create({
     container: {
         // marginBottom: 16,
-        marginTop:-20
+        marginTop:-10
     },
     label: {
         fontSize: 16,
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderRadius: 8,
         padding: 16,
-        height:300
+        height:200
     },
     option: {
         padding: 10,
@@ -105,10 +105,10 @@ const styles = StyleSheet.create({
         borderColor:'#f3f3f3'
     },
     optionText: {
-        fontSize: 13,
+        fontSize: 15,
         // fontFamily: FONTS.Inter.regular,
         color:'#000'
     },
 });
 
-export default CustomPicker;
+export default GenderPicker;

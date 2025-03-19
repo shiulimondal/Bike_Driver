@@ -10,7 +10,6 @@ import CustomToggleSwitch from '../../Ui/CustomToggleSwitch';
 import { apiKey } from '../../Utils/apiKey';
 import GetLocation from 'react-native-get-location'
 import { useSelector } from 'react-redux';
-import { BookingContext } from '../../Context/booking_context';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import HomeService from '../../Services/HomeServises';
@@ -18,6 +17,7 @@ import mapStyle from './mapStyle.json';
 import OtpModalCard from '../../Components/HomeCard/OtpModalCard';
 import TripDetailsCard from '../../Components/HomeCard/TripDetailsCard';
 import BookingSummary from '../../Components/HomeCard/BookingSummary';
+import CustomMarker from '../../Ui/CustomMarker';
 
 const { height, width } = Dimensions.get('window');
 // create a component
@@ -25,8 +25,6 @@ const Home = () => {
     const { colors } = useTheme();
     const mapRef = useRef(null);
     const { userData } = useSelector(state => state.User)
-    const [isOnline, setIsOnline] = useState(0);
-    const GOOGLE_API_KEY = "AIzaSyBnMwjih2zOb96_IP8xxL9WZw2WCoRkui8";
     const [picUpModal, setPicUpModal] = useState(false);
     const [StartpickUpModal, setStartpickUpModal] = useState(false);
     const [picupData, setPicupData] = useState([])
@@ -36,26 +34,20 @@ const Home = () => {
 
     const [userLocation, setUserLocation] = useState(null);
 
+    const [isOnline, setIsOnline] = useState(userData?.login_status === 1 ? 1 : 0);
     const handleToggleSwitch = (value) => {
         setIsOnline(value ? 1 : 0);
     };
 
-
-    const [isModalVisible, setModalVisible] = useState(false);
+    const [isModalDrawerVisible, setModalDrawerVisible] = useState(false);
 
     const HandleOpenDrawer = () => {
-        setModalVisible(true);
+        setModalDrawerVisible(true)
     };
 
     const closeDrawer = () => {
-        setModalVisible(false);
+        setModalDrawerVisible(false);
     };
-
-    const {
-        state,
-        update_dropofflocation,
-        update_pickuplocation,
-    } = useContext(BookingContext);
 
     useEffect(() => {
         GetLocation.getCurrentPosition({
@@ -67,7 +59,6 @@ const Home = () => {
                     latitude: location.latitude,
                     longitude: location.longitude,
                 });
-
                 if (mapRef.current) {
                     mapRef.current.animateToRegion({
                         latitude: location.latitude,
@@ -77,7 +68,7 @@ const Home = () => {
                     });
                 }
             })
-            .catch(error => console.warn('Error fetching location:', error));
+            .catch(error => console.log('Error fetching location:', error));
     }, []);
 
     useEffect(() => {
@@ -96,53 +87,46 @@ const Home = () => {
         formData.append('latitude', userLocation?.latitude)
         formData.append('longitude', userLocation?.longitude)
         formData.append('status', isOnline)
-        // console.log('h------------------------>>>>>', formData)
         try {
             const res = await HomeService.setDriverLocation(formData)
-            console.log('h-------------------------------==========--------------------->>>>>', res)
             if (res?.status === true) {
                 GetUserData()
             } else {
-                console.error('Registration failed:', res?.message || 'Unknown error');
+                console.log('failed:', res?.message || 'Unknown log');
             }
         } catch (error) {
-            console.error('Error in Home:', error);
+            console.log('Error in Home:', error);
         }
     };
 
     const GetUserData = async () => {
         try {
             const res = await HomeService.setUserData();
-            console.log('Fetched List:-----------------------------', res);
+            console.log('Fetched user List:-----------------------------------------------------------', res);
             if (res?.data === null) {
-                console.log('No data received---------------------------'); // Debugging log
+                console.log('No data received---------------------------');
                 setNoDataModal(true);
             } else {
                 setPicUpModal(true);
                 setPicupData(res.data);
-                // setNoDataModal(false);
             }
         } catch (error) {
-            console.error('Error fetching car list:', error);
+            console.log('Error fetching user list:', error);
         }
     };
 
 
     const GetAcceptBook = async (bookingid) => {
-        console.log('-------------llllllllllllllllllllllll--------------', bookingid);
         let data = {
             "booking_id": bookingid
         }
-        console.log('------------------------------------------------------', data);
         try {
             const res = await HomeService.setAcceptBooking(data);
-            // console.log('ctttttttttttttttttttttttttttttttttttttttttttttt000000000000-->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>----------:', res);
-
             if (res?.status === true) {
                 setPicUpModal(false)
                 GetAcceptBookData()
             } else {
-                console.log('Fetching car list failed:', res?.message || 'Unknown error');
+                console.log('Fetching------------------ failed:', res?.message || 'Unknown error');
             }
         } catch (error) {
             console.log('Error list:------------------------------', error);
@@ -163,28 +147,20 @@ const Home = () => {
         }
         : null;
 
-    console.log('Origin:-----------------------', origin);
-    console.log('Destination:-----------------------------------', destination);
-
-
-
     const GetAcceptBookData = async () => {
         setStartpickUpModal(true)
         try {
             const res = await HomeService.setAcceptBookingData();
-            console.log('-------------------------------->>>>>>>>>>>>>>>>>>>-------================---:', res);
+            // console.log('-------------------------------->>>>>>>>>>>>>>>>>>>-------================---:', res);
             if (res?.status === true) {
                 setBookingData(res)
             } else {
-                console.log('Fetching car list failed:', res?.message || 'Unknown error');
+                console.log('-----------------failed:', res?.message || 'Unknown error');
             }
         } catch (error) {
             console.error('Error list:------------------------------', error);
         }
     };
-
-
-
 
     const startLatitude = Number(BookingData?.driver_location?.latitude);
     const startLongitude = Number(BookingData?.driver_location?.longitude);
@@ -209,13 +185,9 @@ const Home = () => {
             "booking_id": rId,
             "otp": otpData,
         }
-
-
-        console.log('ddddtt------------------------ttttttttttttttttttttttttttttttttttttttttttttttttttt--', data);
-
         try {
             const res = await HomeService.setStartTrip(data);
-            console.log('totallllllllllllllllllllllllllllllll--------------->>>>>>>>--------------', JSON.stringify(res));
+            // console.log('totallllllllllllllllllllllllllllllll--------------->>>>>>>>--------------', JSON.stringify(res));
             if (res?.status === true) {
                 setOtpLoader(false);
                 GetafterTrip()
@@ -228,15 +200,12 @@ const Home = () => {
         }
     };
 
-
     const [FullBookingData, setFullBookingData] = useState(false);
-
 
     const GetafterTrip = async () => {
         setTripUserModal(true)
         try {
             const res = await HomeService.setAfterTrip();
-            console.log('----------------------++++++++++++++++++++++++++==========---:', res);
             if (res?.status === true) {
                 setFullBookingData(res)
             } else {
@@ -265,7 +234,7 @@ const Home = () => {
         }
         try {
             const res = await HomeService.setEndTrip(data);
-            console.log('totallllllllllllllllllllllllllllllll--------------->>>>>>>>--------------', JSON.stringify(res));
+            // console.log('totallllllllllllllllllllllllllllllll--------------->>>>>>>>--------------', JSON.stringify(res));
             if (res?.status === true) {
                 setSummeryModal(true);
                 GetFullSummery(res?.data?.id)
@@ -284,7 +253,7 @@ const Home = () => {
         }
         try {
             const res = await HomeService.setShowsummery(data);
-            console.log('----------showsssssssssssssssssssssssssss=====---:', res);
+            // console.log('----------showsssssssssssssssssssssssssss=====---:', res);
             if (res?.status === true) {
                 setSummeryData(res)
             } else {
@@ -297,11 +266,7 @@ const Home = () => {
 
     return (
         <View style={styles.container}>
-            <StatusBar
-                backgroundColor="transparent"
-                barStyle="dark-content"
-                translucent={true}
-            />
+            <StatusBar backgroundColor="transparent" barStyle="dark-content" translucent={true} />
             <MapView
                 ref={mapRef}
                 style={{ flex: 1 }}
@@ -314,14 +279,7 @@ const Home = () => {
                     longitudeDelta: 0.0421,
                 }}
             >
-                {/* {userLocation && (
-                    <Marker
-                        coordinate={userLocation}
-                        title="You are here"
-                        pinColor="green"
-                    />
-                )} */}
-
+                {userLocation && <CustomMarker coordinate={userLocation} />}
 
                 {/* Pick-up Marker */}
                 {origin && (
@@ -347,7 +305,7 @@ const Home = () => {
                     <MapViewDirections
                         origin={origin}
                         destination={destination}
-                        apikey={GOOGLE_API_KEY}
+                        apikey={apiKey}
                         strokeWidth={6}
                         strokeColor="#FEC400"
                         optimizeWaypoints={true}
@@ -356,30 +314,29 @@ const Home = () => {
                     />
                 )}
 
-
-                {/* {origin && destination && (
+                {userLocation && origin && (
                     <Polyline
                         coordinates={[
-                            { latitude: origin.latitude, longitude: origin.longitude },
-                            { latitude: destination.latitude, longitude: destination.longitude }
+                            userLocation,
+                            origin,
                         ]}
-                        strokeWidth={5}
-                        strokeColor="#FEC400"
-                        zIndex={2}
+                        strokeColor="rgba(255, 204, 0, 0.6)"
+                        strokeWidth={4}
+                        lineDashPattern={[5, 10]}
                     />
-                )} */}
+                )}
 
             </MapView>
 
             <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
                 <View style={{ ...styles.toggle_view, backgroundColor: colors.primaryThemeColor }}>
-
                     <TouchableOpacity onPress={() => HandleOpenDrawer()} style={styles.drawer_view}>
                         <Icon name={'bars'} type={'FontAwesome6'} size={24} color={'#000'} />
                     </TouchableOpacity>
                     <Text style={{ ...styles.online_txt, color: colors.primaryFontColor }}>
                         {isOnline === 1 ? 'Online' : 'Offline'}
                     </Text>
+
                     <View style={{ marginRight: moderateScale(15) }}>
                         <CustomToggleSwitch
                             value={isOnline === 1}
@@ -388,15 +345,16 @@ const Home = () => {
                     </View>
                 </View>
 
-                <View style={styles.refress_view}>
+                <TouchableOpacity
+                    onPress={() => GetUserData()}
+                    style={styles.refress_view}>
                     <Image source={require('../../assets/images/refreshsmall.png')} style={styles.refress_img} />
-                </View>
+                </TouchableOpacity>
             </View>
-
 
             <Modal
                 transparent={true}
-                visible={isModalVisible}
+                visible={isModalDrawerVisible}
                 animationIn="slideInLeft"
                 animationOut="slideOutLeft"
                 onRequestClose={closeDrawer}
@@ -410,6 +368,9 @@ const Home = () => {
 
                 </TouchableOpacity>
             </Modal>
+
+
+
 
             <Modal visible={picUpModal} animationType="slide" transparent={true} >
                 <View style={{ flex: 1, justifyContent: 'flex-end', }}>
@@ -580,9 +541,6 @@ const styles = StyleSheet.create({
         height: moderateScale(35),
         resizeMode: 'contain'
     },
-
-
-
     half_modal: {
         height: moderateScale(400),
         width: '100%',

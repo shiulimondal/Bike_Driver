@@ -1,6 +1,6 @@
 //import liraries
 import React, { Component, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, ScrollView, PermissionsAndroid, TextInput, Pressable } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, ScrollView, PermissionsAndroid, TextInput, Pressable, ActivityIndicator } from 'react-native';
 import Header from '../../Components/Header/Header';
 import { FONTS } from '../../Constants/Fonts';
 import { moderateScale } from '../../Constants/PixelRatio';
@@ -13,6 +13,7 @@ import CustomPicker from '../../Ui/CustomPicker';
 import moment from 'moment';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import NavigationService from '../../Services/Navigation';
+import Toast from "react-native-simple-toast";
 
 const { height, width } = Dimensions.get('screen')
 // create a component
@@ -171,7 +172,7 @@ const CarManagment = () => {
     const [carList, setCarList] = useState([]);
     const [SelectcarList, setSelectcarList] = useState('');
 
-    const [carTypeList, setCarYtpeList] = useState([]);
+    const [carTypeList, setCarTypeList] = useState([]);
     const [SelectcarType, setSelectcarType] = useState('');
 
     const [carColorList, setCarColorList] = useState([]);
@@ -217,7 +218,7 @@ const CarManagment = () => {
             const res = await HomeService.setcarmedellist(data)
             // console.log('ressssssssssssssssssssssssssuser====carrrrr====typeeeeeeeeeeeeeeeeeee==============', res);
             if (res?.status === true) {
-                setCarYtpeList(res.data)
+                setCarTypeList(res.data)
             }
         } catch (error) {
             console.error('Error in getEmailLogin:', error);
@@ -241,12 +242,12 @@ const CarManagment = () => {
     const getShowCarDetails = async () => {
         try {
             const res = await HomeService.setcarDetails()
-            // console.log('resssssssssssssssssssss>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>======', res);
+            console.log('resssssssssssssssssssss>>>>>>>>>>>>>>>>>>-------------------->>>>>>>>>>>>>>>>>>>>>>>>======', res);
             if (res?.status === true) {
                 setAllCarDetials(res.data)
-                setSelectcarList(res?.data?.car_category_id) 
+                setSelectcarList(res?.data?.car_category_id)
                 getCarmodellist(res?.data?.car_category_id)
-                setCarYtpeList(res?.data?.car_model_id)
+                setSelectcarType(res?.data?.car_model_id)
                 setSelectcarColor(res?.data?.color_id)
                 setRegNumber(res?.data?.registration_no)
                 setSelectFualType(res?.data?.fuel_type)
@@ -260,6 +261,7 @@ const CarManagment = () => {
             //   Toast.show('An unexpected error occurred. Please try again later.');
         }
     };
+
 
     const getCarDetails = async () => {
         const formData = new FormData()
@@ -294,7 +296,9 @@ const CarManagment = () => {
             if (res?.status === true) {
                 // setModalVisible(true)
                 NavigationService.navigate('Home')
+                Toast.show(res?.message)
             } else {
+                Toast.show(res?.message)
                 console.error('Registration failed:', res?.message || 'Unknown error');
             }
         } catch (error) {
@@ -308,6 +312,7 @@ const CarManagment = () => {
         <View style={styles.container}>
             <Header title='Car Management' />
             <ScrollView showsVerticalScrollIndicator={false}>
+                <Text style={styles.input_title}>Vehicle Type</Text>
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                     <CustomPicker
                         labelKey="name"
@@ -321,7 +326,7 @@ const CarManagment = () => {
                         }}
                     />
                 </View>
-
+                <Text style={styles.input_title}>Vehicle Model</Text>
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                     <CustomPicker
                         labelKey="name"
@@ -336,7 +341,7 @@ const CarManagment = () => {
                     />
 
                 </View>
-
+                <Text style={styles.input_title}>Vehicle Color</Text>
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                     <CustomPicker
                         labelKey="name"
@@ -351,7 +356,7 @@ const CarManagment = () => {
                     />
 
                 </View>
-
+                <Text style={styles.input_title}>Vehicle Registration Number</Text>
                 <TextInput
                     placeholder='Car Registration Number'
                     // placeholderTextColor={colors.borderColor}
@@ -366,6 +371,7 @@ const CarManagment = () => {
                     onChangeText={(val) => setRegNumber(val)}
                 />
 
+                <Text style={styles.input_title}>Vehicle Fuel Type</Text>
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                     <CustomPicker
                         labelKey="name"
@@ -379,7 +385,7 @@ const CarManagment = () => {
                         }}
                     />
                 </View>
-
+                <Text style={styles.input_title}>Vehicle Manufacturing Date</Text>
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                     <Pressable
                         onPress={showDatePicker}
@@ -411,7 +417,7 @@ const CarManagment = () => {
                         />
                     </Pressable>
                 </View>
-
+                <Text style={styles.input_title}>Vehicle Registration Date</Text>
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                     <Pressable
                         onPress={showDatePickerr}
@@ -490,8 +496,14 @@ const CarManagment = () => {
                 <TouchableOpacity
                     onPress={() => getCarDetails()}
                     style={{ ...styles.button_sty, marginTop: moderateScale(30), backgroundColor: colors.buttonColor }}>
-                    <Text style={{ ...styles.signin_txt, color: colors.secondaryThemeColor }}>Submit</Text>
+                    {buttonLoader ? (
+                        <ActivityIndicator size="small" color={'#fff'} />
+                    ) : (
+                        <Text style={{ ...styles.signin_txt, color: colors.secondaryThemeColor }}>Submit</Text>
+                    )}
                 </TouchableOpacity>
+
+
             </ScrollView>
 
 
@@ -601,6 +613,14 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#ffffff'
     },
+    input_title: {
+        fontFamily: FONTS.Poppins.semibold,
+        marginHorizontal: moderateScale(15),
+        fontSize: moderateScale(13),
+        color: '#000',
+        marginTop: moderateScale(15)
+    },
+
     button_sty: {
         width: width - moderateScale(30),
         height: moderateScale(48),
@@ -619,7 +639,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: moderateScale(10),
         fontFamily: FONTS.Poppins.medium,
         fontSize: moderateScale(13),
-        marginTop: moderateScale(10)
+        marginTop: moderateScale(3)
     },
     signin_txt: {
         textAlign: 'center',
@@ -677,7 +697,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: moderateScale(10)
+        marginTop: moderateScale(5)
     },
 });
 

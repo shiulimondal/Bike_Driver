@@ -30,47 +30,47 @@ const DrawerCard = ({closeDrawer}) => {
         {
             img: require('../../assets/images/house.png'),
             title: 'Home',
-            handleClick: () => {NavigationService.navigate('Home'),closeDrawer},
+            handleClick: () => {NavigationService.navigate('Home'),closeDrawer()},
         },
         {
             img: require('../../assets/images/user.png'),
             title: 'Profile Management',
-            handleClick: () => {NavigationService.navigate('Profile'),closeDrawer}
+            handleClick: () => {NavigationService.navigate('Profile'),closeDrawer()}
         },
         {
             img: require('../../assets/images/document.png'),
             title: 'Document management',
-            handleClick: () => {NavigationService.navigate('DocManagement'),closeDrawer},
+            handleClick: () => {NavigationService.navigate('DocManagement'),closeDrawer()},
         },
         {
             img: require('../../assets/images/carm.png'),
             title: 'Car management',
-            handleClick: () => {NavigationService.navigate('CarManagment'),closeDrawer},
+            handleClick: () => {NavigationService.navigate('CarManagment'),closeDrawer()},
         },
         {
             img: require('../../assets/images/sale.png'),
             title: 'Today Sale',
-            handleClick: () => {NavigationService.navigate('Sale'),closeDrawer},
+            handleClick: () => {NavigationService.navigate('Sale'),closeDrawer()},
         },
         {
             img: require('../../assets/images/user.png'),
             title: 'Booking History',
-            handleClick: () => {NavigationService.navigate('History'),closeDrawer},
+            handleClick: () => {NavigationService.navigate('History'),closeDrawer()},
         },
         {
             img: require('../../assets/images/historydoc.png'),
             title: 'Payment history',
-            handleClick: () => {NavigationService.navigate('PaymentHistory'),closeDrawer},
+            handleClick: () => {NavigationService.navigate('PaymentHistory'),closeDrawer()},
         },
         {
             img: require('../../assets/images/key.png'),
             title: 'Change password',
-            handleClick: () => {NavigationService.navigate('ChangePassword'),closeDrawer},
+            handleClick: () => {NavigationService.navigate('ChangePassword'),closeDrawer()},
         },
         {
             img: require('../../assets/images/delete.png'),
             title: 'Delete',
-            handleClick: () => {setModalVisible(true),closeDrawer},
+            handleClick: () => {setModalVisible(true),closeDrawer()},
         },
         // {
         //     img: require('../../assets/images/delete.png'),

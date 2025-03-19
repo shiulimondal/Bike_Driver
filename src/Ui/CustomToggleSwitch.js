@@ -22,7 +22,7 @@ const CustomToggleSwitch = ({ value, onValueChange }) => {
   });
 
   return (
-    <TouchableOpacity onPress={handleToggle} style={[styles.switchContainer, { backgroundColor: value ? 'green' : 'gray' }]}>
+    <TouchableOpacity onPress={handleToggle} style={[styles.Container, { backgroundColor: value ? 'green' : 'gray' }]}>
       <Animated.View
         style={[
           styles.circle,
@@ -36,7 +36,7 @@ const CustomToggleSwitch = ({ value, onValueChange }) => {
 };
 
 const styles = StyleSheet.create({
-  switchContainer: {
+  Container: {
     width: 40,
     height: 20,
     borderRadius: 15,

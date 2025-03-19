@@ -72,6 +72,9 @@ const setHistorydata = async (data) => {
 const setDeleteUser = async (data) => {
     return HttpClient.post('/delete-account',data);
 }
+const setChangePassword = async (data) => {
+    return HttpClient.post('/change-password',data);
+}
 
 const HomeService = {
     getAccount,
@@ -96,7 +99,8 @@ const HomeService = {
     setShowsummery,
     setSaleData,
     setHistorydata,
-    setDeleteUser
+    setDeleteUser,
+    setChangePassword
 }
 
 export default HomeService;

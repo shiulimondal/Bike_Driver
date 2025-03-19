@@ -10,6 +10,7 @@ import Icon from '../../Ui/Icon';
 import Modal from 'react-native-modal';
 import HomeService from '../../Services/HomeServises';
 import NavigationService from '../../Services/Navigation';
+import Toast from "react-native-simple-toast";
 
 
 const { height, width } = Dimensions.get('screen')
@@ -177,7 +178,9 @@ const DocManagement = () => {
             if (res?.status === true) {
                 // setModalVisible(true)
                 NavigationService.navigate('Home')
+                Toast.show(res?.message)
             } else {
+                Toast.show(res?.message)
                 console.error('Registration failed:', res?.message || 'Unknown error');
             }
         } catch (error) {

@@ -36,6 +36,7 @@ const LoginScreen = () => {
             if (res?.status === true) {
                 NavigationService.navigate('LoginOtp', { dataId: res?.data });
             } else {
+                Toast.show(res?.message);
                 // Toast.show(res?.message || 'Failed to send email. Please try again.');
             }
         } catch (error) {

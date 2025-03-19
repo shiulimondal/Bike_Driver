@@ -11,6 +11,7 @@ import CheckBox from '../../Ui/CheckBox';
 import { useRoute } from '@react-navigation/native';
 import AuthService from '../../Services/Auth';
 import Modal from 'react-native-modal';
+import Toast from "react-native-simple-toast";
 
 const { height, width } = Dimensions.get('screen')
 // create a component
@@ -31,34 +32,6 @@ const SignUp = () => {
     const toggleModal = () => {
         setModalVisible(!isModalVisible);
     };
-
-
-    // const getUserReg = async () => {
-    //     const formData = new FormData()
-    //     formData.append('name', name)
-    //     formData.append('email', userData)
-    //     formData.append('phone', phone)
-    //     formData.append('password', password)
-
-    
-    //     console.log('FormDatatosend:============================', formData);
-    
-    //     try {
-    //         setButtonLoader(true);
-    //         const res = await AuthService.setRegister(formData)
-    //         console.log('Registrationres========================', res)
-    //         if (res?.status === true) {
-    //             setModalVisible(true)
-    //             NavigationService.navigate('Login')
-    //         } else {
-    //             console.error('Registration failed:', res?.message || 'Unknown error');
-    //         }
-    //     } catch (error) {
-    //         console.error('Error in getUserReg:', error);
-    //     } finally {
-    //         setButtonLoader(false)
-    //     }
-    // };
 
 
     const getUserReg = async () => {
@@ -91,9 +64,7 @@ const SignUp = () => {
         formData.append('email', email)
         formData.append('phone', userData)
         formData.append('password', password)
-
        
-
         console.log('FormDatatosend:============================', formData);
 
         try {
@@ -108,7 +79,8 @@ const SignUp = () => {
                 }, 2000)
 
             } else {
-                console.error('Registration failed:', res?.message || 'Unknown error');
+                Toast.show(res?.message);
+                console.log('Registration failed:', res?.message || 'Unknown error');
             }
         } catch (error) {
             console.error('Error in getUserReg:', error);

@@ -42,7 +42,6 @@ const History = () => {
         hideDatePicker();
     };
 
-
     const showDatePickerr = () => {
         setDatePickerVisibilityy(true);
     };
@@ -70,7 +69,6 @@ const History = () => {
         try {
             const res = await HomeService.setHistorydata(data);
             // console.log('historyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy-------------->>>>>>>>:', JSON.stringify(res));
-
             if (res?.status === true) {
                 const completedBookings = allData.completed_bookings || [];
                 const cancelledBookings = allData.cancelled_bookings || [];
@@ -91,7 +89,7 @@ const History = () => {
     return (
         <View style={styles.container}>
             <Header title="History" />
-
+            
             <View
                 style={{
                     ...styles.main_view,
