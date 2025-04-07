@@ -1,6 +1,6 @@
 //import liraries
 import React, { Component, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, Pressable, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Pressable, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import Header from '../../Components/Header/Header';
 import { moderateScale } from '../../Constants/PixelRatio';
 import { useTheme } from '../../../ThemeContext';
@@ -10,93 +10,73 @@ import CancelledCard from '../../Components/HistoryCard/CancelledCard';
 import Icon from '../../Ui/Icon';
 import HomeService from '../../Services/HomeServises';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import Toast from "react-native-simple-toast";
 
 const { height, width } = Dimensions.get('screen')
 // create a component
 const History = () => {
     const { colors } = useTheme();
-    const [activeTab, setActiveTab] = useState('Completed')
-    const [loader, setloader] = useState(false)
-    const [historyData, setHistoryData] = useState([])
-    const [CompleteData, setCompleteData] = useState([])
-    const [CancelData, setCancelData] = useState([])
-    const [DateData, setDateData] = useState('');
-    const [Date, setDate] = useState('');
+    const [activeTab, setActiveTab] = useState('Completed');
+    const [loader, setLoader] = useState(false);
+    const [historyData, setHistoryData] = useState([]);
+    const [CompleteData, setCompleteData] = useState([]);
+    const [CancelData, setCancelData] = useState([]);
+
+    const [fromDate, setFromDate] = useState(null);
+    const [toDate, setToDate] = useState(null);
+    
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+    const [isDatePickerVisibleTo, setDatePickerVisibilityTo] = useState(false);
 
-    const [DateDataa, setDateDataa] = useState('');
-    const [Datee, setDatee] = useState('');
-    const [isDatePickerVisiblee, setDatePickerVisibilityy] = useState(false);
-
-    const showDatePicker = () => {
-        setDatePickerVisibility(true);
-    };
-
-    const hideDatePicker = () => {
-        setDatePickerVisibility(false);
-    };
+    const showDatePicker = () => setDatePickerVisibility(true);
+    const hideDatePicker = () => setDatePickerVisibility(false);
+    const showDatePickerTo = () => setDatePickerVisibilityTo(true);
+    const hideDatePickerTo = () => setDatePickerVisibilityTo(false);
 
     const DatehandleConfirm = (date) => {
-        console.log('dateeeeeeee', moment(date).format('YYYY-MM-DD'));
-        setDate(moment(date).format('YYYY-MM-DD'));
+        const formattedDate = moment(date).format('YYYY-MM-DD');
+        console.log('Selected From Date:', formattedDate);
+        setFromDate(formattedDate);
         hideDatePicker();
     };
 
-    const showDatePickerr = () => {
-        setDatePickerVisibilityy(true);
+    const DatehandleConfirmTo = (date) => {
+        const formattedDate = moment(date).format('YYYY-MM-DD');
+        console.log('Selected To Date:', formattedDate);
+        setToDate(formattedDate);
+        hideDatePickerTo();
     };
-
-    const hideDatePickerr = () => {
-        setDatePickerVisibilityy(false);
-    };
-
-    const DatehandleConfirmm = (date) => {
-        console.log('dateeeeeeee', moment(date).format('YYYY-MM-DD'));
-        setDatee(moment(date).format('YYYY-MM-DD'));
-        hideDatePickerr();
-    };
-
-
-    useEffect(() => {
-        GetBookkingDetails()
-    }, [])
 
     const GetBookkingDetails = async () => {
-        let data = {
-            "from_date": Datee || '',
-            "to_date": Date || ''
+        if (!fromDate || !toDate) {
+            console.warn('Both From and To dates must be selected');
+            return;
         }
+        setLoader(true);
+        let data = { from_date: fromDate, to_date: toDate };
         try {
             const res = await HomeService.setHistorydata(data);
-            // console.log('historyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy-------------->>>>>>>>:', JSON.stringify(res));
-            if (res?.status === true) {
-                const completedBookings = allData.completed_bookings || [];
-                const cancelledBookings = allData.cancelled_bookings || [];
-    
-                setHistoryData(allData);
-                setCompleteData(completedBookings);
-                setCancelData(cancelledBookings);
+            if (res?.status) {
+                setHistoryData(res);
+                setCompleteData(res.completed_bookings || []);
+                setCancelData(res.cancelled_bookings || []);
             } else {
-                // console.error('Fetching booking-----------------:', res?.message || 'Unknown error');
+                setCompleteData([]);
+                setCancelData([]);
             }
         } catch (error) {
-            // console.error('Error fetching car list:------------------------------', error);
+            console.error('Error fetching history data:', error);
         } finally {
-            setloader(false);
+            setLoader(false);
         }
     };
 
     return (
         <View style={styles.container}>
             <Header title="History" />
-            
-            <View
-                style={{
-                    ...styles.main_view,
-                    backgroundColor: colors.inputBox,
-                    borderColor: colors.buttonColor,
-                }}
-            >
+
+            {/* Tab Navigation */}
+            <View style={{ ...styles.main_view, backgroundColor: colors.inputBox, borderColor: colors.buttonColor }}>
                 <Pressable
                     style={{
                         ...styles.sub_main,
@@ -104,12 +84,7 @@ const History = () => {
                     }}
                     onPress={() => setActiveTab('Completed')}
                 >
-                    <Text
-                        style={{
-                            ...styles.complete_txt,
-                            color: activeTab === 'Completed' ? colors.secondaryThemeColor : colors.secondaryText,
-                        }}
-                    >
+                    <Text style={{ ...styles.complete_txt, color: activeTab === 'Completed' ? colors.secondaryThemeColor : '#999' }}>
                         Completed
                     </Text>
                 </Pressable>
@@ -120,89 +95,63 @@ const History = () => {
                     }}
                     onPress={() => setActiveTab('Cancelled')}
                 >
-                    <Text
-                        style={{
-                            ...styles.complete_txt,
-                            color: activeTab === 'Cancelled' ? colors.secondaryThemeColor : colors.secondaryText,
-                        }}
-                    >
+                    <Text style={{ ...styles.complete_txt, color: activeTab === 'Cancelled' ? colors.secondaryThemeColor : '#999' }}>
                         Cancelled
                     </Text>
                 </Pressable>
             </View>
 
-            <View style={{ ...styles.time_view }}>
+            {/* Date Pickers */}
+            <View style={styles.time_view}>
+                {/* From Date Picker */}
                 <View style={{ ...styles.timeAdd_view, borderColor: colors.shadowColor }}>
-                    <Text style={{ ...styles.time_to_txt, color: colors.secondaryText }}>{!DateData == '' ? moment(DateData).format('L') : 'To'}</Text>
+                    <Text style={{ ...styles.time_to_txt, color: colors.secondaryText }}>
+                        {fromDate ? moment(fromDate).format('L') : 'From'}
+                    </Text>
                     <TouchableOpacity onPress={showDatePicker}>
                         <Icon name={'calendar'} type={'Feather'} color={'#001A72'} size={20} />
                     </TouchableOpacity>
-                    <DateTimePickerModal
-                        isVisible={isDatePickerVisible}
-                        mode="date"
-                        onConfirm={val => {
-                            DatehandleConfirm(val);
-                            setDateData(val);
-                        }}
-                        onCancel={hideDatePicker}
-                    />
-
+                    <DateTimePickerModal isVisible={isDatePickerVisible} mode="date" onConfirm={DatehandleConfirm} maximumDate={new Date()} onCancel={hideDatePicker} />
                 </View>
+
+                {/* To Date Picker */}
                 <View style={{ ...styles.timeAdd_view, borderColor: colors.shadowColor }}>
-                    <Text style={{ ...styles.time_to_txt, color: colors.secondaryText }}>{!DateData == '' ? moment(DateData).format('L') : 'Form'}</Text>
-                    <TouchableOpacity onPress={showDatePickerr}>
+                    <Text style={{ ...styles.time_to_txt, color: colors.secondaryText }}>
+                        {toDate ? moment(toDate).format('L') : 'To'}
+                    </Text>
+                    <TouchableOpacity onPress={showDatePickerTo}>
                         <Icon name={'calendar'} type={'Feather'} color={'#001A72'} size={20} />
                     </TouchableOpacity>
-                    <DateTimePickerModal
-                        isVisible={isDatePickerVisiblee}
-                        mode="date"
-                        onConfirm={val => {
-                            DatehandleConfirmm(val);
-                            setDateDataa(val);
-                        }}
-                        onCancel={hideDatePickerr}
-                    />
+                    <DateTimePickerModal isVisible={isDatePickerVisibleTo} mode="date" onConfirm={DatehandleConfirmTo} maximumDate={new Date()} onCancel={hideDatePickerTo} />
+                </View>
 
-                </View>
-                <View style={{
-                    ...styles.timeAdd_view, width: moderateScale(40),
-                    borderWidth: 0, backgroundColor: colors.subFontcolor
-                }}>
+                {/* Search Icon */}
+                <TouchableOpacity style={{ ...styles.timeAdd_view, width: 40, borderWidth: 0, backgroundColor: colors.subFontcolor, alignItems: 'center', justifyContent: 'center' }} onPress={GetBookkingDetails}>
                     <Icon name={'search1'} type={'AntDesign'} color={'#001A72'} size={20} />
-                </View>
+                </TouchableOpacity>
             </View>
 
-            {activeTab === 'Completed' ? (
-                CompleteData?.length > 0 ? (
-                    <FlatList
-                        data={CompleteData}
-                        keyExtractor={(item, index) => index.toString()}
-                        renderItem={({ item, index }) => (
-                            <CompletedCard item={item} key={index} getReview={getReview} />
-                        )}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingBottom: 20 }}
-                    />
-                ) : (
-                    <View style={{ alignItems: 'center', marginTop: 20 }}>
-                        <Text style={{ fontSize: 16, color: '#555' }}>No data found</Text>
-                    </View>
-                )
+            {/* Loader */}
+            {loader ? (
+                <ActivityIndicator size="large" color={colors.buttonColor} style={{ marginTop: 20 }} />
             ) : (
-                CancelData?.length > 0 ? (
-                    <FlatList
-                        data={CancelData}
-                        keyExtractor={(item, index) => index.toString()}
-                        renderItem={({ item, index }) => (
-                            <CancelledCard item={item} key={index} />
-                        )}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingBottom: 20 }}
-                    />
+                // Booking Data List
+                activeTab === 'Completed' ? (
+                    CompleteData.length > 0 ? (
+                        <FlatList data={CompleteData} keyExtractor={(item, index) => index.toString()} renderItem={({ item }) => <CompletedCard item={item} />} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }} />
+                    ) : (
+                        <View style={{ alignItems: 'center', marginTop: 20 }}>
+                            <Text style={{ fontSize: 16, color: '#555' }}>No data found</Text>
+                        </View>
+                    )
                 ) : (
-                    <View style={{ alignItems: 'center', marginTop: 20 }}>
-                        <Text style={{ fontSize: 16, color: '#555' }}>No data found</Text>
-                    </View>
+                    CancelData.length > 0 ? (
+                        <FlatList data={CancelData} keyExtractor={(item, index) => index.toString()} renderItem={({ item }) => <CancelledCard item={item} />} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }} />
+                    ) : (
+                        <View style={{ alignItems: 'center', marginTop: 20 }}>
+                            <Text style={{ fontSize: 16, color: '#555' }}>No data found</Text>
+                        </View>
+                    )
                 )
             )}
         </View>
